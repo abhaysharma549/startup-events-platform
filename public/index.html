@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- /* 
+  StartupEvents - A dynamic platform to discover and connect with the best startup events worldwide. 
+  Built with Node.js, Express, Socket.IO, and Apify for real-time updates and seamless event discovery.
+*/ -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StartupEvents - Discover & Connect</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/styles/design-system.css">
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo"> Startup<span>Events</span></div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#events">Discover Events</a>
+            <div id="userMenuContainer" class="user-menu-container" style="display: none;">
+                <button id="userMenuBtn" class="user-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+                    <span id="userName">Account</span>
+                    <span class="caret">▾</span>
+                </button>
+                <div id="userDropdown" class="user-dropdown" role="menu">
+                    <button id="logoutBtn" class="user-dropdown-item" type="button" role="menuitem">Logout</button>
+                </div>
+            </div>
+            <a id="loginLink" href="/login.html" class="login-btn" style="display: none;">Sign In</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🚀 Discover Startup Events</div>
+            <h1>Discover the next big <span class="gradient-text">Startup</span> event.</h1>
+            <p>Connect with founders, pitch to top-tier VCs, and scale your vision. The best startup events, all in one place.</p>
+            <div class="search-bar">
+                <input type="text" id="keywordInput" placeholder="Keywords: Startup, AI, Web3..." style="flex: 1;" aria-label="Search by keywords">
+                <div class="search-divider"></div>
+                <input type="text" id="locationInput" placeholder="Location: Jalandhar, New York..." style="flex: 1;" aria-label="Search by location">
+                <button class="btn-search" aria-label="Search events">Search</button>
+            </div>
+            <div class="actions-row">
+                <button id="refreshApifyBtn" class="btn-apify" aria-label="Fetch fresh events from Meetup">📡 Fetch Fresh Events</button>
+                <a id="downloadJsonBtn" class="btn-apify btn-apify-outline" href="/api/events/download" aria-label="Download fetched events JSON">⬇ Download JSON</a>
+                <span id="fetchStatusPill" class="status-pill" role="status" aria-live="polite">Idle</span>
+            </div>
+            <div class="hero-insights" role="region" aria-label="Sync overview">
+                <div class="insight-card accent">
+                    <div class="insight-label">Local Cache</div>
+                    <div id="cacheStatusText" class="insight-value">Waiting for first fetch</div>
+                    <div id="cacheFilePath" class="insight-meta">JSON will be written to the local project folder.</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-label">Current Search</div>
+                    <div id="activeSearchSummary" class="insight-value">All startup events</div>
+                    <div class="insight-meta">Use keywords and location to refine the feed.</div>
+                </div>
+            </div>
+            <div class="quick-tags">
+                <span class="quick-tag" data-keyword="AI">AI Events</span>
+                <span class="quick-tag" data-keyword="Web3">Web3</span>
+                <span class="quick-tag" data-keyword="Fintech">Fintech</span>
+                <span class="quick-tag" data-keyword="SaaS">SaaS</span>
+            </div>
+        </div>
+        <div class="hero-graphics">
+            <div class="glass-orb orb-1"></div>
+            <div class="glass-orb orb-2"></div>
+            <aside class="assistant-panel" aria-label="Chat assistance">
+                <div class="assistant-label">Event Copilot</div>
+                <h2>Need a quick event suggestion?</h2>
+                <p id="assistantHint">Ask for AI meetups, saved picks, location ideas, or what to search next.</p>
+                <div id="assistantMessages" class="assistant-messages" role="log" aria-live="polite">
+                    <div class="assistant-message assistant-message-bot">
+                        I can help you narrow the feed. Try “Find me AI events in New York” or “What should I save first?”
+                    </div>
+                </div>
+                <form id="assistantForm" class="assistant-form">
+                    <input id="assistantInput" type="text" placeholder="Ask about the current event list..." aria-label="Ask the event assistant">
+                    <button type="submit" class="btn-primary">Ask</button>
+                </form>
+            </aside>
+        </div>
+    </header>
+
+    <main id="events" class="events-section">
+        <div class="section-header">
+            <h2>Upcoming <span class="gradient-text">Events</span></h2>
+            <div class="filter-chips">
+                <button class="chip active" aria-pressed="true">All</button>
+                <button class="chip" aria-pressed="false">Networking</button>
+                <button class="chip" aria-pressed="false">Pitch</button>
+                <button class="chip" aria-pressed="false">Workshops</button>
+                <button id="savedEventsChip" class="chip saved-chip" aria-pressed="false" data-count="0" title="View saved events">💾 Saved</button>
+            </div>
+        </div>
+        <div class="events-toolbar">
+            <button id="clearSearchBtn" class="toolbar-btn" aria-label="Clear all search filters">✕ Clear Filters</button>
+            <select id="sortSelect" class="toolbar-select" aria-label="Sort events">
+                <option value="date-asc">Sort: Date (Earliest)</option>
+                <option value="date-desc">Sort: Date (Latest)</option>
+                <option value="name-asc">Sort: Name (A-Z)</option>
+            </select>
+        </div>
+        <div class="stats-panel" role="region" aria-label="Event statistics">
+            <div class="stat-item">
+                <div class="stat-label">Total Events</div>
+                <div class="stat-value" id="eventsCount">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Last Sync</div>
+                <div class="stat-value stat-muted" id="lastSyncAt">Never</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Live Stream</div>
+                <div class="stat-value" id="liveState"><span class="pulse-dot"></span> Connected</div>
+            </div>
+        </div>
+
+        <div id="events-grid" class="events-grid" role="main" aria-label="Events listing">
+            <!-- Events will be dynamically injected here -->
+            <div class="loading-state">Loading amazing events...</div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 StartupEvents. Empowering the founder ecosystem. | <a href="#" style="color: var(--accent-primary); text-decoration: none;">Privacy Policy</a> | <a href="#" style="color: var(--accent-primary); text-decoration: none;">Terms of Service</a></p>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" role="status" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div id="shortcuts-help" class="shortcuts-help" role="dialog" aria-labelledby="shortcuts-title">
+        <div class="shortcuts-content">
+            <h3 id="shortcuts-title">⌨️ Keyboard Shortcuts</h3>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <kbd>S</kbd> <span>Save event (when card focused)</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>C</kbd> <span>Clear filters</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>?</kbd> <span>Toggle this help</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>Esc</kbd> <span>Close this dialog</span>
+                </div>
+            </div>
+            <button class="shortcuts-close" aria-label="Close shortcuts help">×</button>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Toggle -->
+    <button id="shortcuts-btn" class="shortcuts-btn" title="Show keyboard shortcuts" aria-label="Show keyboard shortcuts">?</button>
+
+    <script>
+        // Auth check and UI setup
+        (function() {
+            // Note: Auth token handling is now done by auth.js and app.js
+            // This inline script is kept for backward compatibility
+            // The main auth logic runs in DOMContentLoaded event
+        })();
+    </script>
+
+    <script src="/scripts/auth.js?v=3"></script>
+    <script src="/scripts/app.js"></script>
+</body>
+
+</html>
