@@ -1,337 +1,328 @@
-# StartupEvents
+🚀 StartupEvents — Startup & AI Event Discovery Platform
 
-A Node.js event discovery app for startup and AI events. It fetches event data from Apify, stores a local JSON cache, serves a static frontend, protects app APIs with Supabase authentication, and broadcasts fresh event data in real time with Socket.IO.
+A full-stack platform for discovering startup, technology, and AI events with smart search, location-based filtering, secure authentication, real-time updates, and AI-powered event assistance.
 
-## Features
+✨ Overview
 
-- Express 5 server for the web app and API routes
-- Static frontend in `public/`
-- Supabase-backed signup, login, token verification, refresh, and logout flow
-- Protected event, Apify, assistant, and download APIs
-- Apify actor integration for fetching event data
-- Apify webhook endpoint for automatic event cache updates
-- Local JSON event cache with configurable storage path
-- Filtering, sorting, pagination, trending events, suggestions, and bulk event operations
-- Socket.IO updates for connected clients
-- Gemini-powered assistant endpoint for event discovery help
-- In-memory API rate limiting
-- Vercel-compatible API entrypoints
+StartupEvents helps founders, developers, students, and tech enthusiasts discover relevant startup and AI events from a single platform.
 
-## Requirements
+The application combines Node.js, Express.js, Supabase, Apify, Socket.IO, and Gemini AI to create a modern event discovery experience.
 
-- Node.js 18 or newer
-- npm
-- Supabase project URL and service role key
-- Apify API token
-- Gemini API key, if you want to use the assistant endpoint
-- Cloudflare Turnstile site key, optional, for CAPTCHA configuration
+🎯 Key Features
 
-## Setup
+🔎 Smart Event Search — Search events by keyword, location, and event type.
 
-Install dependencies:
+📍 Location-Based Filtering — Find events relevant to a particular location.
 
-```bash
+📅 Event Sorting & Pagination — Sort upcoming events and browse results efficiently.
+
+🔥 Trending Events — Surface upcoming and recently relevant events.
+
+💡 Event Suggestions — Search-as-you-type suggestions for faster discovery.
+
+🔐 Secure Authentication — Signup, login, token verification, refresh, and logout using Supabase.
+
+🤖 AI Event Assistant — Gemini-powered assistance for finding and understanding events.
+
+⚡ Real-Time Updates — Socket.IO broadcasts newly fetched event data to connected clients.
+
+🌐 Apify Integration — Fetch and update event data through an Apify actor and webhook.
+
+🛡️ API Security — Authentication middleware, rate limiting, security headers, and protected APIs.
+
+☁️ Deployment Ready — Includes Vercel configuration and deployment documentation.
+
+🧰 Tech Stack
+
+Category
+
+Technologies
+
+Frontend
+
+HTML5, CSS3, JavaScript, React JSX
+
+Backend
+
+Node.js, Express.js
+
+Authentication
+
+Supabase Auth
+
+Database / Auth Platform
+
+Supabase
+
+Event Data
+
+Apify
+
+AI
+
+Google Gemini
+
+Real-Time Communication
+
+Socket.IO
+
+Security
+
+Helmet, CORS, Rate Limiting
+
+Deployment
+
+Vercel
+
+🏗️ Architecture
+
+                    ┌─────────────────────┐
+                    │       User          │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │  StartupEvents UI   │
+                    │ HTML / CSS / JS     │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Express.js API      │
+                    │ Auth + Event APIs   │
+                    └──────┬───────┬──────┘
+                           │       │
+              ┌────────────┘       └─────────────┐
+              ▼                                  ▼
+      ┌───────────────┐                  ┌────────────────┐
+      │    Supabase   │                  │     Apify      │
+      │ Auth & Users  │                  │ Event Data     │
+      └───────────────┘                  └───────┬────────┘
+                                                 │
+                                                 ▼
+                                        ┌────────────────┐
+                                        │ Event Cache    │
+                                        └───────┬────────┘
+                                                │
+                         ┌──────────────────────┴────────────┐
+                         ▼                                   ▼
+                 ┌────────────────┐                  ┌──────────────┐
+                 │   Socket.IO    │                  │ Gemini AI    │
+                 │ Real-time data │                  │ Assistant    │
+                 └────────────────┘                  └──────────────┘
+
+📁 Project Structure
+
+startup-events-platform/
+├── api/                       # API / Vercel entrypoints
+├── lib/                       # Auth, event store, rate limiter & utilities
+├── public/                    # Frontend files
+│   ├── scripts/
+│   └── styles/
+├── server.js                  # Express + Socket.IO server
+├── SUPABASE_SETUP.sql         # Supabase setup
+├── vercel.json                # Vercel configuration
+├── .env.example               # Environment variable template
+├── package.json
+└── README.md
+
+⚙️ Getting Started
+
+1. Clone the repository
+
+git clone https://github.com/abhaysharma549/startup-events-platform.git
+cd startup-events-platform
+
+2. Install dependencies
+
 npm install
-```
 
-Create a local environment file:
+3. Configure environment variables
 
-```bash
+Create a .env file from the provided template:
+
 cp .env.example .env
-```
 
-Update `.env` with your own values:
-
-```env
-PORT=3000
+Then add your own credentials:
 
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-APIFY_API_TOKEN=your_apify_api_token_here
-APIFY_WEBHOOK_SECRET=choose_a_long_random_secret
-APIFY_ACTOR_ID=9dardaZ3akeIhRfs3
+APIFY_API_TOKEN=your_apify_api_token
+APIFY_WEBHOOK_SECRET=your_webhook_secret
+APIFY_ACTOR_ID=your_apify_actor_id
 
-EVENTS_CACHE_DIR=./data
-GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-1.5-flash
 
-TURNSTILE_SITE_KEY=your_cloudflare_turnstile_site_key_here
-```
+⚠️ Never commit .env or real API keys to GitHub.
 
-Create the Supabase profile table from `SUPABASE_SETUP.sql` before using registration. The backend writes user profile rows to `user_profiles` after creating Supabase Auth users.
+4. Configure Supabase
 
-## Run Locally
+Run the SQL provided in:
 
-Start the development server:
+SUPABASE_SETUP.sql
 
-```bash
+This prepares the required user profile structure for authentication.
+
+5. Start the application
+
+Development mode:
+
 npm run dev
-```
 
-Open the app:
+Production-style startup:
 
-```text
-http://localhost:3000
-```
-
-Login and signup are available at:
-
-```text
-http://localhost:3000/login
-```
-
-For production-style local startup:
-
-```bash
 npm start
-```
 
-## Authentication
+Open:
 
-Most API routes require a Supabase access token:
+http://localhost:3000
 
-```http
-Authorization: Bearer YOUR_ACCESS_TOKEN
-```
+Login:
 
-Public routes:
+http://localhost:3000/login
 
-- `GET /`
-- `GET /login`
-- `GET /health`
-- `GET /api/auth/config`
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/refresh`
-- `POST /api/webhooks/apify`
+🔌 Core API Endpoints
 
-Protected routes include event reads, downloads, Apify fetches, assistant calls, token verification, logout, and bulk operations.
+Method
 
-## API Routes
+Endpoint
 
-### Health Check
+Purpose
 
-```http
-GET /health
-```
+GET
 
-Returns server health and a timestamp.
+/health
 
-### Auth Config
+Server health check
 
-```http
-GET /api/auth/config
-```
+GET
 
-Returns CAPTCHA configuration for the frontend.
+/api/events
 
-### Register
+Fetch/filter events
 
-```http
-POST /api/auth/register
-```
+GET
 
-Creates a Supabase Auth user and a `user_profiles` row.
+/api/events/trending
 
-Expected JSON body:
+Get trending events
 
-```json
-{
-  "username": "founder",
-  "email": "founder@example.com",
-  "password": "secret123",
-  "captchaToken": "optional-turnstile-token"
-}
-```
+GET
 
-### Login
+/api/events/suggestions
 
-```http
-POST /api/auth/login
-```
+Event search suggestions
 
-Authenticates with Supabase and returns the user plus access and refresh tokens.
+POST
 
-### Verify Token
+/api/apify/fetch
 
-```http
-GET /api/auth/verify
-```
+Fetch fresh events from Apify
 
-Requires auth. Verifies the current access token.
+POST
 
-### Refresh Token
+/api/assistant
 
-```http
-POST /api/auth/refresh
-```
+Gemini-powered event assistant
 
-Returns a fresh Supabase session from a refresh token.
+POST
 
-### Logout
+/api/auth/register
 
-```http
-POST /api/auth/logout
-```
+Register a user
 
-Requires auth. Confirms logout; client-side token removal completes the flow.
+POST
 
-### Fetch Events From Apify
+/api/auth/login
 
-```http
-POST /api/apify/fetch
-```
+Login
 
-Requires auth. Runs the configured Apify actor, maps dataset items into app event objects, saves them to the local cache, and broadcasts the update over Socket.IO.
+POST
 
-### Apify Webhook
+/api/auth/refresh
 
-```http
-POST /api/webhooks/apify?secret=YOUR_WEBHOOK_SECRET
-```
+Refresh authentication
 
-Receives an Apify webhook payload, reads the completed run dataset, updates the local cache, and broadcasts the latest events. If `APIFY_WEBHOOK_SECRET` is set, the request must include the matching `secret` query parameter or `x-apify-webhook-secret` header.
+GET
 
-### Get Cached Events
+/api/auth/verify
 
-```http
-GET /api/events
-```
+Verify access token
 
-Requires auth. Returns cached events with filtering, sorting, and pagination.
+POST
 
-Supported query parameters:
+/api/auth/logout
 
-- `keyword`
-- `location`
-- `eventType`
-- `sortBy`, defaults to `date-asc`
-- `limit`, defaults to `20`, maximum `100`
-- `offset`, defaults to `0`
+Logout
 
-### Download Event Cache
+Protected endpoints require a valid Supabase access token.
 
-```http
-GET /api/events/download
-```
+🔐 Security
 
-Requires auth. Downloads the local `events-cache.json` file when a cache exists.
+The project includes:
 
-### Trending Events
+Supabase authentication
 
-```http
-GET /api/events/trending
-```
+Bearer-token verification
 
-Requires auth. Returns upcoming or recent trending events from the local cache.
+API rate limiting
 
-Supported query parameters:
+CORS configuration
 
-- `days`, defaults to `7`, maximum `90`
-- `limit`, defaults to `10`, maximum `50`
+Helmet security headers
 
-### Event Suggestions
+Protected event and assistant APIs
 
-```http
-GET /api/events/suggestions?query=ai
-```
+Environment-based secret management
 
-Requires auth. Returns search-as-you-type event suggestions. The query must be at least 2 characters.
+Apify webhook secret validation
 
-### Bulk Event Operations
+🚀 Deployment
 
-```http
-POST /api/events/bulk
-```
+The project includes Vercel configuration and can be deployed to platforms such as:
 
-Requires auth. Supports `export` and `summary` actions for up to 50 event IDs.
+Vercel
 
-Expected JSON body:
+Render
 
-```json
-{
-  "action": "summary",
-  "eventIds": ["Event name or id"]
-}
-```
+Railway
 
-### Assistant
+For production deployment, configure all required environment variables in the hosting provider rather than committing secrets to the repository.
 
-```http
-POST /api/assistant
-```
+📚 Documentation
 
-Requires auth. Uses Gemini to answer short, practical questions based on the provided event data and filter context.
+Additional technical documentation is included in the repository:
 
-Expected JSON body:
+API_DOCUMENTATION.md
 
-```json
-{
-  "message": "Which AI events should I look at this week?",
-  "filters": {},
-  "events": []
-}
-```
+AUTHENTICATION.md
 
-## Rate Limiting
+AUTH_IMPLEMENTATION.md
 
-All `/api/` routes use an in-memory limiter of 100 requests per 15 minutes per IP or authenticated user. Bulk event operations also use a stricter limit of 5 requests per minute.
+AUTH_QUICK_START.md
 
-Rate limit headers:
+SUPABASE_AUTH_GUIDE.md
 
-- `X-RateLimit-Limit`
-- `X-RateLimit-Remaining`
-- `X-RateLimit-Reset`
+DEVELOPER_GUIDE.md
 
-## Data Persistence
+VERCEL_DEPLOYMENT.md
 
-Fetched events are saved as JSON using `EVENTS_CACHE_DIR` or `EVENTS_CACHE_FILE`.
+TROUBLESHOOTING.md
 
-For local development, this can be:
+👨‍💻 Author
 
-```env
-EVENTS_CACHE_DIR=./data
-```
+Abhay Sharma
 
-On hosts with ephemeral filesystems, the cache may not persist between restarts or function invocations. See `VERCEL_DEPLOYMENT.md` for hosting notes.
+B.Tech Computer Science & Engineering
 
-## Project Structure
+GitHub: https://github.com/abhaysharma549
 
-```text
-api/                    Vercel API entrypoints
-lib/api-utils.js        Event filtering, sorting, pagination, and response helpers
-lib/auth.js             Supabase auth helpers and auth middleware
-lib/event-store.js      Local event cache helpers
-lib/logger.js           Request and error logging helpers
-lib/rate-limiter.js     In-memory API rate limiter
-public/                 Static frontend assets
-server.js               Express and Socket.IO server
-SUPABASE_SETUP.sql      Supabase table setup
-vercel.json             Vercel routing config
-```
+⭐ Project Highlights
 
-## Scripts
+This project demonstrates practical experience with:
 
-```bash
-npm run dev     # Start server with node --watch
-npm start       # Start server
-npm run build   # Placeholder build command
-npm test        # Placeholder test command
-```
+Full-Stack Development • REST APIs • Authentication • API Integration • Real-Time Communication • AI Integration • Event Data Processing • Web Deployment
 
-## Additional Docs
-
-- `AUTH_QUICK_START.md`
-- `AUTHENTICATION.md`
-- `API_DOCUMENTATION.md`
-- `SUPABASE_AUTH_GUIDE.md`
-- `VERCEL_DEPLOYMENT.md`
-- `TROUBLESHOOTING.md`
-- `DEVELOPER_GUIDE.md`
-
-## Deployment
-
-The app can run on Vercel, Render, Railway, or another Node.js host. Set the same environment variables in your hosting provider. If you need durable JSON cache storage, prefer a host with persistent disks or volumes.
-
-See `VERCEL_DEPLOYMENT.md` for deployment details.
+⭐ If you find the project useful, consider giving the repository a star!
